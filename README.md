@@ -2,11 +2,17 @@
 
 OT device emulator (client)
 
+## Requirements
+
+Uses the [MinimalModbus](https://minimalmodbus.readthedocs.io/en/stable/) python module
+
+`pip install minimalmodbus`
+
 ## Usage
 
 ```
-usage: serial-client-ot.py [-h] [-l {critical,error,warning,info,debug}] [-b BAUDRATE] [-i ID] [-o OUTPUT] [-P {N,E,O}] [-S STOP_BITS] [-B BYTE_SIZE] -p PORT
-                           [-F {rtu,ascii}]
+usage: serial-client-ot.py [-h] [-l {critical,error,warning,info,debug}] [-b BAUDRATE] [-i ID] [-o OUTPUT] [-j] [-P {N,E,O}] [-S STOP_BITS] [-B BYTE_SIZE] -p
+                           PORT [-F {rtu,ascii}]
 
 pymodbus synchronous serial server
 
@@ -19,6 +25,7 @@ options:
   -i ID, --id ID        set number of device_id, default is 0 (any)
   -o OUTPUT, --output OUTPUT
                         set output file name
+  -j, --json            set output in json format
   -P {N,E,O}, --parity {N,E,O}
                         set parity of serial device, default is N (none)
   -S STOP_BITS, --stop-bits STOP_BITS

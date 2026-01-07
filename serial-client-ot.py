@@ -49,7 +49,7 @@ def main():
     parser.add_argument( "-b", "--baudrate", help="set serial device baud rate", default=9600, type=int )
     parser.add_argument( "-i", "--id", help="set number of device_id, default is 0 (any)", default=0, type=int)
     parser.add_argument( "-o", "--output", help="set output file name", default=None, type=str)
-    parser.add_argument( "-j", "--json", help="set input json file name", default=None, action="store_true")
+    parser.add_argument( "-j", "--json", help="set output in json format", default=None, action="store_true")
     parser.add_argument( "-P", "--parity", help="set parity of serial device, default is N (none)", choices=["N", "E", "O"], default="N", type=str)
     parser.add_argument( "-S", "--stop-bits", help="set number of stop bits for serial device, default is 1", default=1, type=int)
     parser.add_argument( "-B", "--byte-size", help="set number of bytesize for serial device, default is 8", default=8, type=int)
