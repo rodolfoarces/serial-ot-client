@@ -267,7 +267,7 @@ def main():
     
     logger.addHandler(fh)
     #pymodbus_apply_logging_config(args.log.upper())
-    logger.setLevel(args.log_level.upper())
+    logger.setLevel(fh.level)
 
     # Log the final arguments
     logger.debug("Command line arguments: %s", args)
