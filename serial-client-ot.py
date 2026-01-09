@@ -276,7 +276,7 @@ def main():
 
         logger.debug(f"Reading configuration file {args.config}")
         config = configparser.ConfigParser()
-        config.read('config.ini')
+        config.read(args.config)
         
         if args.output is not None:
             logger.debug("Log output provided in command line, skipping config file setting.")  
