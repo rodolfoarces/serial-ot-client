@@ -260,7 +260,11 @@ def main():
         fh_formatter = logging.Formatter('%(message)s')
     # Add the formatter to fh
     fh.setFormatter(fh_formatter)
-    fh.setLevel(args.log_level.upper())
+    if args.log_level is not None:
+        fh.setLevel(args.log_level.upper())
+    else:
+        fh.setLevel("INFO")
+    
     logger.addHandler(fh)
     #pymodbus_apply_logging_config(args.log.upper())
     logger.setLevel(args.log_level.upper())
