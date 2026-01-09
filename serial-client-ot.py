@@ -251,10 +251,13 @@ def main():
         fh = logging.StreamHandler()
     
     # create formatter and set it for the handler depending on log level
-    if args.log_level.upper() == "INFO" or args.log_level is not None:
-        fh_formatter = logging.Formatter('%(message)s')
+    if args.log_level is not None:
+        if args.log_level.upper() == "INFO":
+            fh_formatter = logging.Formatter('%(message)s')
+        else:
+            fh_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     else:
-        fh_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        fh_formatter = logging.Formatter('%(message)s')
     # Add the formatter to fh
     fh.setFormatter(fh_formatter)
     fh.setLevel(args.log_level.upper())
