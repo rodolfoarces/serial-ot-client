@@ -312,7 +312,14 @@ def main():
     ## Example: Read temperature from register 3
     #########################################
     ## Read information from the instrument
-    temperature = instrument.read_register(3, 0)  # Registernumber, number of decimals
+    try:
+        logger.debug("Reading temperature from register 3")
+        temperature = instrument.read_register(3, 0)  # Register number, number of decimals
+    except Exception as ex:
+        logger.error(f"Error reading from instrument: {ex}")
+        print("Error - Exiting program - could not read from instrument")
+        sys.exit(1)
+    
     ## Print the result
     print_message(device_id=args.id, address=3, value=temperature, value_type=int, format_json=args.json, args=args)
 
