@@ -192,7 +192,7 @@ def print_message(device_id, address, value, value_type, args=None, format_json=
     if format_json or args.json:
         message = json.dumps({ "datetime": current_iso_time, "device_id": device_id, "address": address, "value": value})
     else:
-        message = f"datetime: {current_iso_time} - serial-client-ot - id: {device_id} address: {address} value: {value_type(value)}"
+        message = f"{current_iso_time} - serial-client-ot - id: {device_id} address: {address} value: {value_type(value)}"
 
     if remote or args.remote is not None:
         logger.debug(f"Forwarding message to remote host: {message}")
