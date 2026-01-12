@@ -30,7 +30,7 @@ def setup_instrument(args):
         logger.debug("Setting up instrument with provided parameters.")
         instrument = minimalmodbus.Instrument(args.port, args.id)  # port name, slave address (in decimal)
     except Exception as ex:
-        logger.error(f"Error during instrument setup: {ex}")
+        logger.debug(f"Error during instrument setup: {ex}")
         print_error (0, "Setup", "Error during instrument setup")
         sys.exit(1)
     except SerialException as serial_ex:
