@@ -344,8 +344,8 @@ def main():
         ## Print the result
         print_message(device_id=args.id, address=3, value=temperature, value_type=int, format_json=args.json, args=args)
     except Exception as ex:
-        logger.error(f"Error reading from instrument: {ex}")
-        print_error(1, "Connection", "Could not read from instrument", args)
+        logger.debug(f"Error reading from instrument: {ex}")
+        print_error(1, "Connection", "Could not read values from instrument", args)
         sys.exit(1)
     
     
