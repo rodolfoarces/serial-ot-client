@@ -31,10 +31,10 @@ def setup_instrument(args):
         instrument = minimalmodbus.Instrument(args.port, args.id)  # port name, slave address (in decimal)
     except Exception as ex:
         logger.debug(f"Error during instrument setup: {ex}")
-        print_error (0, "Setup", "Error during instrument setup")
+        print_error (0, "Setup", "Error during instrument setup", args)
         sys.exit(1)
     except SerialException as serial_ex:
-        print_error (0, "Setup", "Error during instrument setup")
+        print_error (0, "Setup", "Error during instrument setup", args)
         sys.exit(1)
 
     
@@ -158,11 +158,11 @@ def validate_config(args, config):
     else:
         logger.debug("'remote' section not found.")
 
-def api_authentication(auth_manager,auth_username, auth_password):
+def api_authentication(auth_manager,auth_username, auth_password, args=None):
     """Authenticate to the API and return the token."""
-    if auth_manager is None or auth_username is None or auth_password is None:
+    if auth_manager is None or auth_username is None or auth_password is None or args is None:
         logger.error("Authentication parameters missing")
-        print_error(2, "Authentication", "Authentication parameters missing")
+        print_error(2, "Authentication", "Authentication parameters missing", args)
         sys.exit(5)
         return None
     auth_endpoint = auth_manager + "/security/user/authenticate"
@@ -172,7 +172,7 @@ def api_authentication(auth_manager,auth_username, auth_password):
         auth_request = requests.get(auth_endpoint, auth=(auth_username, auth_password), verify=False)
     except Exception as ex:
         logger.error(f"Error connecting to authentication endpoint: {ex}")
-        print_error(3, "Connection", "Could not connect to authentication endpoint")
+        print_error(3, "Connection", "Could not connect to authentication endpoint", args)
         sys.exit(3)
         return None
     
@@ -184,12 +184,12 @@ def api_authentication(auth_manager,auth_username, auth_password):
         # "title": "Unauthorized", "detail": "Invalid credentials"
         if auth_response["title"] == "Unauthorized":
             logger.error("Authentication error")
-            print_error(4, "Authentication", "Authentication error")
+            print_error(4, "Authentication", "Authentication error", args)
             sys.exit(4)
             return None
     except Exception as ex:
         logger.error(f"Unknown error during authentication: {ex}")
-        print_error (5, "Unknown", "Unknow error during authentication")
+        print_error (5, "Unknown", "Unknow error during authentication", args)
         return None
     
 def print_message(device_id, address, value, value_type, args=None, format_json=False, remote=False):
@@ -204,7 +204,7 @@ def print_message(device_id, address, value, value_type, args=None, format_json=
         logger.debug(f"Forwarding message to remote host: {message}")
         # API authentication
         # Set token
-        token = api_authentication(args.manager, args.username, args.password)
+        token = api_authentication(args.manager, args.username, args.password, args)
         if token is None:
             logger.error("Authentication failed, cannot forward logs")
             logger.debug("Exiting program")
@@ -220,13 +220,13 @@ def print_message(device_id, address, value, value_type, args=None, format_json=
             # Check 
             if forward_request.status_code != 200:
                     logger.error("There were errors sending the logs")
-                    print_error(6, "Connection", "Errors sending logs to endpoint")
+                    print_error(6, "Connection", "Errors sending logs to endpoint", args)
                     logger.debug(json.dumps(r))
             else:
                 logger.debug(json.dumps(r))
         except Exception as ex:
             logger.error(f"Error connecting to authentication endpoint: {ex}")
-            print_error(7, "Connection", "Could not connect to event endpoint")
+            print_error(7, "Connection", "Could not connect to event endpoint", args)
             sys.exit(3)
         time.sleep(2)
     else:
@@ -341,13 +341,14 @@ def main():
     try:
         logger.debug("Reading temperature from register 3")
         temperature = instrument.read_register(3, 0)  # Register number, number of decimals
+        ## Print the result
+        print_message(device_id=args.id, address=3, value=temperature, value_type=int, format_json=args.json, args=args)
     except Exception as ex:
         logger.error(f"Error reading from instrument: {ex}")
-        print_error(1, "Connection", "Could not read from instrument")
+        print_error(1, "Connection", "Could not read from instrument", args)
         sys.exit(1)
     
-    ## Print the result
-    print_message(device_id=args.id, address=3, value=temperature, value_type=int, format_json=args.json, args=args)
+    
 
 if __name__ == "__main__":
     main()
