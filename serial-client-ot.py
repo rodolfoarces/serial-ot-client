@@ -30,7 +30,7 @@ def setup_instrument(args):
         instrument = minimalmodbus.Instrument(args.port, args.id)  # port name, slave address (in decimal)
     except Exception as ex:
         logger.error(f"Error during instrument setup: {ex}")
-        print("Error - Exiting program - could not setup instrument")
+        print_error (0, "Setup", "Error during instrument setup")
         sys.exit(1)
     
     logger.debug(f"Instrument created on port {args.port} with id {args.id}")
@@ -157,7 +157,7 @@ def api_authentication(auth_manager,auth_username, auth_password):
     """Authenticate to the API and return the token."""
     if auth_manager is None or auth_username is None or auth_password is None:
         logger.error("Authentication parameters missing")
-        print("Authentication parameters missing - Exiting program")
+        print_error(2, "Authentication", "Authentication parameters missing")
         sys.exit(5)
         return None
     auth_endpoint = auth_manager + "/security/user/authenticate"
@@ -167,7 +167,7 @@ def api_authentication(auth_manager,auth_username, auth_password):
         auth_request = requests.get(auth_endpoint, auth=(auth_username, auth_password), verify=False)
     except Exception as ex:
         logger.error(f"Error connecting to authentication endpoint: {ex}")
-        print("Error - Exiting program - could not connect to authentication endpoint")
+        print_error(3, "Connection", "Could not connect to authentication endpoint")
         sys.exit(3)
         return None
     
@@ -179,20 +179,21 @@ def api_authentication(auth_manager,auth_username, auth_password):
         # "title": "Unauthorized", "detail": "Invalid credentials"
         if auth_response["title"] == "Unauthorized":
             logger.error("Authentication error")
-            print("Authentication error - Exiting program")
+            print_error(4, "Authentication", "Authentication error")
             sys.exit(4)
             return None
     except Exception as ex:
         logger.error(f"Unknown error during authentication: {ex}")
+        print_error (5, "Unknown", "Unknow error during authentication")
         return None
     
 def print_message(device_id, address, value, value_type, args=None, format_json=False, remote=False):
     """Print the message in the desired format or forward to remote host."""
     current_iso_time = datetime.now().isoformat()
     if format_json or args.json:
-        message = json.dumps({ "datetime": current_iso_time, "device_id": device_id, "address": address, "value": value})
+        message = json.dumps({ "datetime": current_iso_time, "device_id": device_id, "status": "Success", "address": address, "value": value})
     else:
-        message = f"{current_iso_time} - serial-client-ot - id: {device_id} address: {address} value: {value_type(value)}"
+        message = f"{current_iso_time} - serial-client-ot - id: {device_id} status: success address: {address} value: {value_type(value)}"
 
     if remote or args.remote is not None:
         logger.debug(f"Forwarding message to remote host: {message}")
@@ -208,17 +209,33 @@ def print_message(device_id, address, value, value_type, args=None, format_json=
         msg_data = { "events": [ message ]}
         logger.debug(json.dumps(msg_data))
         msg_url = f"{args.manager}/events?wait_for_complete=true"
-        forward_request = requests.post(msg_url, json=msg_data, headers=msg_headers, verify=False)
-        r = json.loads(forward_request.content.decode('utf-8'))
-        # Check 
-        if forward_request.status_code != 200:
-                logger.error("There were errors sending the logs")
+        try:
+            forward_request = requests.post(msg_url, json=msg_data, headers=msg_headers, verify=False)
+            r = json.loads(forward_request.content.decode('utf-8'))
+            # Check 
+            if forward_request.status_code != 200:
+                    logger.error("There were errors sending the logs")
+                    print_error(6, "Connection", "Errors sending logs to endpoint")
+                    logger.debug(json.dumps(r))
+            else:
                 logger.debug(json.dumps(r))
-        else:
-            logger.debug(json.dumps(r))
+        except Exception as ex:
+            logger.error(f"Error connecting to authentication endpoint: {ex}")
+            print_error(7, "Connection", "Could not connect to event endpoint")
+            sys.exit(3)
         time.sleep(2)
     else:
         print(message)
+
+def print_error(error_code=int(0),status="Error",message="Unknown error", args=None):
+    if args is None:
+        if args.json is not None:
+            error_message = { "datetime": current_iso_time, "error_code": error_code, "error_status": status, "error_message": message}
+            print (json.dumps(error_message))
+    else:
+        current_iso_time = datetime.now().isoformat()
+        message = f"{current_iso_time} - serial-client-ot - error_code: {error_code} error_status: {status} error_message: {error_message}"
+            
 
 def main():
     parser = argparse.ArgumentParser(description="pymodbus synchronous serial server")
@@ -317,7 +334,7 @@ def main():
         temperature = instrument.read_register(3, 0)  # Register number, number of decimals
     except Exception as ex:
         logger.error(f"Error reading from instrument: {ex}")
-        print("Error - Exiting program - could not read from instrument")
+        print_error(1, "Connection", "Could not read from instrument")
         sys.exit(1)
     
     ## Print the result
