@@ -15,6 +15,7 @@ import json
 import time
 from datetime import datetime
 
+
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
 logger = logging.getLogger("serial-client-ot")
@@ -32,6 +33,10 @@ def setup_instrument(args):
         logger.error(f"Error during instrument setup: {ex}")
         print_error (0, "Setup", "Error during instrument setup")
         sys.exit(1)
+    except SerialException as serial_ex:
+        print_error (0, "Setup", "Error during instrument setup")
+        sys.exit(1)
+
     
     logger.debug(f"Instrument created on port {args.port} with id {args.id}")
     instrument.serial.baudrate = args.baudrate   # Baudrate
@@ -228,13 +233,17 @@ def print_message(device_id, address, value, value_type, args=None, format_json=
         print(message)
 
 def print_error(error_code=int(0),status="Error",message="Unknown error", args=None):
-    if args is None:
+    current_iso_time = datetime.now().isoformat()
+    if args is not None:
         if args.json is not None:
             error_message = { "datetime": current_iso_time, "error_code": error_code, "error_status": status, "error_message": message}
             print (json.dumps(error_message))
+        else:
+            error_message = f"{current_iso_time} - serial-client-ot - error_code: {error_code} error_status: {status} error_message: {message}"
+            print (error_message)
     else:
-        current_iso_time = datetime.now().isoformat()
-        message = f"{current_iso_time} - serial-client-ot - error_code: {error_code} error_status: {status} error_message: {error_message}"
+        error_message = f"{current_iso_time} - serial-client-ot - error_code: {error_code} error_status: {status} error_message: {message}"
+        print (error_message)
             
 
 def main():
