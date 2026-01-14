@@ -236,7 +236,7 @@ def print_error(error_code=int(0),status="Error",message="Unknown error", args=N
     current_iso_time = datetime.now().isoformat()
     if args is not None:
         if args.json is not None:
-            error_message = { "datetime": current_iso_time, "error_code": error_code, "error_status": status, "error_message": message}
+            error_message = json.dumps({ "datetime": str(current_iso_time), "error_code": error_code, "error_status": status, "error_message": message})
         else:
             error_message = f"{current_iso_time} - serial-client-ot - error_code: {error_code} error_status: {status} error_message: {message}"
     else:
