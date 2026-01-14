@@ -237,14 +237,42 @@ def print_error(error_code=int(0),status="Error",message="Unknown error", args=N
     if args is not None:
         if args.json is not None:
             error_message = { "datetime": current_iso_time, "error_code": error_code, "error_status": status, "error_message": message}
-            print (json.dumps(error_message))
         else:
             error_message = f"{current_iso_time} - serial-client-ot - error_code: {error_code} error_status: {status} error_message: {message}"
-            print (error_message)
     else:
         error_message = f"{current_iso_time} - serial-client-ot - error_code: {error_code} error_status: {status} error_message: {message}"
-        print (error_message)
-            
+    
+    if args.remote is not None:
+        logger.debug(f"Forwarding message to remote host: {error_message}")
+        # API authentication
+        # Set token
+        token = api_authentication(args.manager, args.username, args.password, args)
+        if token is None:
+            logger.error("Authentication failed, cannot forward logs")
+            logger.debug("Exiting program")
+            sys.exit(2)
+        # API processing
+        msg_headers = {"Content-Type": "application/json; charset=utf-8", "Authorization": "Bearer " + token}
+        msg_data = { "events": [ error_message ]}
+        logger.debug(json.dumps(msg_data))
+        msg_url = f"{args.manager}/events?wait_for_complete=true"
+        try:
+            forward_request = requests.post(msg_url, json=msg_data, headers=msg_headers, verify=False)
+            r = json.loads(forward_request.content.decode('utf-8'))
+            # Check 
+            if forward_request.status_code != 200:
+                    logger.error("There were errors sending the logs")
+                    print(6, "Connection", "Errors sending logs to endpoint", args)
+                    logger.debug(json.dumps(r))
+            else:
+                logger.debug(json.dumps(r))
+        except Exception as ex:
+            logger.error(f"Error connecting to authentication endpoint: {ex}")
+            print(7, "Connection", "Could not connect to event endpoint", args)
+            sys.exit(3)
+        time.sleep(2)
+    else:
+        print(error_message)        
 
 def main():
     parser = argparse.ArgumentParser(description="pymodbus synchronous serial server")
